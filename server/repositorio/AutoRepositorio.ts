@@ -73,9 +73,19 @@ export class AutoRepositorio extends Repositorio<Auto> {
   }
 
   crearAuto(datos: CrearAutoDTO): AutoConSlug {
+    const principal =
+      datos.mainImageUrl?.trim() ||
+      datos.imageUrls?.find((u) => u?.trim())?.trim() ||
+      IMAGEN_PLACEHOLDER;
+    const extras = (datos.imageUrls ?? [])
+      .map((u) => u.trim())
+      .filter(Boolean)
+      .filter((u) => u !== principal);
+
     const nuevo = this.crear({
       ...datos,
-      mainImageUrl: datos.mainImageUrl?.trim() || IMAGEN_PLACEHOLDER,
+      mainImageUrl: principal,
+      imageUrls: extras.length > 0 ? extras : undefined,
       status: "available",
     });
     return this.enriquecer(nuevo);

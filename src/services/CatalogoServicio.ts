@@ -19,6 +19,7 @@ export type CrearAutoPayload = {
   condition: "0km" | "usado";
   description: string;
   mainImageUrl?: string;
+  imageUrls?: string[];
   engine?: string;
   color?: string;
   doors?: string;

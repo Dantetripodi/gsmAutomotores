@@ -7,6 +7,7 @@ import { CatalogView } from "./components/catalog/CatalogView";
 import { CarDetailsView } from "./components/details/CarDetailsView";
 import { AdminDashboardView } from "./components/admin/AdminDashboardView";
 import { AppraisalWizardView } from "./components/appraisal/AppraisalWizardView";
+import { SegurosView } from "./components/seguros/SegurosView";
 import LoginView from "./components/auth/LoginView";
 import { catalogoServicio, marcasServicio } from "./services";
 import { DEFAULT_PRICE_MAX } from "./config/app";
@@ -57,7 +58,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] text-neutral-900 font-sans antialiased">
-      <AppHeader onNavigate={setView} />
+      <AppHeader currentView={view} onNavigate={setView} />
 
       <main className="pt-20 md:pt-24 pb-16 md:pb-20 px-4 md:px-6 max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
@@ -91,6 +92,8 @@ export default function App() {
           {view === "admin" && renderAdminSection()}
 
           {view === "appraisal" && <AppraisalWizardView onBack={() => setView("catalog")} />}
+
+          {view === "seguros" && <SegurosView onVolverAlCatalogo={() => setView("catalog")} />}
         </AnimatePresence>
       </main>
 
@@ -105,7 +108,7 @@ export default function App() {
         resultCount={cars.length}
       />
 
-      <AppFooter />
+      <AppFooter onNavigate={setView} />
     </div>
   );
 }

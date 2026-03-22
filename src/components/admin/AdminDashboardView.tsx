@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { ChevronRight, Trash2, LogOut, CircleDot } from "lucide-react";
-import { formatPrice } from "../../lib/utils";
+import { formatPrice, urlsImagenesAuto } from "../../lib/utils";
 import { catalogoServicio, dashboardServicio } from "../../services";
 import { useOnInit } from "../../hooks/useOnInit";
 import { useAuth } from "../../context/AuthContext";
@@ -145,7 +145,12 @@ export function AdminDashboardView({ onBack }: Props) {
                 className="flex flex-col sm:flex-row sm:items-stretch gap-3 p-3 md:p-4 bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden"
               >
                 <div className="w-full sm:w-36 md:w-40 h-28 sm:h-auto shrink-0 rounded-lg bg-neutral-100 overflow-hidden">
-                  <img src={car.mainImageUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  <img
+                    src={urlsImagenesAuto(car)[0]}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="min-w-0 flex-1">

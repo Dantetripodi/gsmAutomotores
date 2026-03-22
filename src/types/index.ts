@@ -1,4 +1,4 @@
-export type AppView = "catalog" | "details" | "admin" | "appraisal";
+export type AppView = "catalog" | "details" | "admin" | "appraisal" | "seguros";
 
 export type CarStatus = "available" | "reserved" | "sold";
 export type CarCurrency = "ARS" | "USD";
@@ -34,6 +34,8 @@ export interface Car {
   doors?: string;
   status: CarStatus;
   mainImageUrl: string;
+  /** Fotos extra (la portada es `mainImageUrl`). */
+  imageUrls?: string[];
   description: string;
   segment?: string;
   bodyType?: string;

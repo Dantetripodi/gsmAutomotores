@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   Home,
 } from "lucide-react";
-import { formatPrice, buildCarDetailTitle, whatsappConsultUrl } from "../../lib/utils";
+import { formatPrice, buildCarDetailTitle, whatsappConsultUrl, urlsImagenesAuto } from "../../lib/utils";
+import { ImageCarousel } from "../ui/ImageCarousel";
 import { catalogoServicio } from "../../services";
 import { SpecBlock } from "./SpecBlock";
 import { buildMetaLine, mergeSpecSummary } from "./detailUtils";
@@ -108,9 +109,11 @@ export function CarDetailsView({ id, onBack, onSelectCar }: Props) {
         </nav>
 
         <div className="bg-white mt-4 border-y border-neutral-200">
-          <div className="aspect-[16/10] bg-neutral-100">
-            <img src={car.mainImageUrl} alt={buildCarDetailTitle(car)} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-          </div>
+          <ImageCarousel
+            images={urlsImagenesAuto(car)}
+            alt={buildCarDetailTitle(car)}
+            aspectClass="aspect-[16/10] w-full"
+          />
 
           <div className="px-4 py-6 space-y-3 border-b border-neutral-100">
             <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 leading-tight">{buildCarDetailTitle(car)}</h1>
@@ -189,7 +192,12 @@ export function CarDetailsView({ id, onBack, onSelectCar }: Props) {
                     className="text-left rounded-lg border border-neutral-200 bg-white overflow-hidden hover:border-neutral-400 transition-colors"
                   >
                     <div className="aspect-[16/10] bg-neutral-100">
-                      <img src={r.mainImageUrl} alt={r.modelName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <ImageCarousel
+                        images={urlsImagenesAuto(r)}
+                        alt={r.modelName}
+                        aspectClass="aspect-[16/10] w-full"
+                        compact
+                      />
                     </div>
                     <div className="p-3 space-y-1">
                       <p className="text-xs text-neutral-500">{r.brandName} · {r.condition === "0km" ? "0 km" : r.year}</p>

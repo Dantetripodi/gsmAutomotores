@@ -1,5 +1,15 @@
 # Datos persistentes
 
+## Cómo funciona la **semilla** (`server/datos/semillaAutos.ts`)
+
+Ese archivo **no se ejecuta en cada arranque**. Solo se usa cuando **no existe** `data/autos.json`:
+
+1. Primera vez que corrés el servidor → se crea `autos.json` copiando la semilla.
+2. Después, **todo lo que guardás** (altas, bajas, fotos nuevas) vive solo en `autos.json`.
+3. Si borrás `autos.json` y reiniciás, volvés a tener la semilla (como “reset de fábrica”).
+
+La semilla **no** se “sube sola” a producción: en el deploy subís el código; el catálogo real lo define `autos.json` en el servidor o una base de datos. Ver `docs/DEPLOY.md`.
+
 ## `autos.json`
 
 El catálogo de vehículos se guarda **automáticamente** en este archivo cuando:

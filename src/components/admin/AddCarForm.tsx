@@ -1,6 +1,6 @@
 import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { motion } from "motion/react";
-import { X, Upload } from "lucide-react";
+import { X, Upload, Trash2 } from "lucide-react";
 import { catalogoServicio, marcasServicio, type CrearAutoPayload } from "../../services";
 import { useAuth } from "../../context/AuthContext";
 import { useOnInit } from "../../hooks/useOnInit";
@@ -23,8 +23,9 @@ export function AddCarForm({ onClose, onSaved }: Props) {
   const [brandName, setBrandName] = useState("");
   const [modelName, setModelName] = useState("");
   const [currency, setCurrency] = useState<CarCurrency>("ARS");
-  const [urlField, setUrlField] = useState("");
-  const [imageDataUrl, setImageDataUrl] = useState("");
+  /** Orden: primera = portada, resto = carrusel */
+  const [galeria, setGaleria] = useState<string[]>([]);
+  const [urlsPegadas, setUrlsPegadas] = useState("");
 
   const [formData, setFormData] = useState({
     versionName: "",
@@ -44,30 +45,46 @@ export function AddCarForm({ onClose, onSaved }: Props) {
     marcasServicio.obtenerMarcas().then((brands) => setBrandSuggestions(brands.map((b) => b.name)));
   });
 
-  const handleImageFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file?.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageDataUrl(typeof reader.result === "string" ? reader.result : "");
-      setUrlField("");
-    };
-    reader.readAsDataURL(file);
+  const leerArchivoComoDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+      reader.onerror = () => reject(new Error("lectura"));
+      reader.readAsDataURL(file);
+    });
+
+  const handleArchivos = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    const dataUrls: string[] = [];
+    const lista: File[] = Array.from(files as FileList);
+    for (const file of lista) {
+      if (!file.type.startsWith("image/")) continue;
+      dataUrls.push(await leerArchivoComoDataUrl(file));
+    }
+    if (dataUrls.length) setGaleria((prev) => [...prev, ...dataUrls]);
+    e.target.value = "";
   };
 
-  const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setUrlField(e.target.value);
-    setImageDataUrl("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const agregarUrlsDesdeTexto = () => {
+    const lineas = urlsPegadas
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => /^https?:\/\//i.test(l));
+    if (lineas.length) setGaleria((prev) => [...prev, ...lineas]);
+    setUrlsPegadas("");
   };
 
-  const mainImageUrl = imageDataUrl || urlField.trim();
+  const quitarFoto = (indice: number) => {
+    setGaleria((prev) => prev.filter((_, i) => i !== indice));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!token || !brandName.trim() || !modelName.trim()) return;
 
     setSubmitting(true);
+    const fotos = galeria.filter(Boolean);
     const payload: CrearAutoPayload = {
       brandName: brandName.trim(),
       modelName: modelName.trim(),
@@ -83,7 +100,8 @@ export function AddCarForm({ onClose, onSaved }: Props) {
       engine: formData.engine.trim() || undefined,
       color: formData.color.trim() || undefined,
       doors: formData.doors || undefined,
-      ...(mainImageUrl ? { mainImageUrl } : {}),
+      ...(fotos[0] ? { mainImageUrl: fotos[0] } : {}),
+      ...(fotos.length > 1 ? { imageUrls: fotos.slice(1) } : {}),
     };
 
     try {
@@ -295,29 +313,61 @@ export function AddCarForm({ onClose, onSaved }: Props) {
             </div>
           </div>
 
-          {/* Foto */}
+          {/* Galería de fotos */}
           <div className="space-y-3 rounded-xl border border-neutral-200 p-4 bg-neutral-50">
-            <p className="text-sm font-semibold text-neutral-900">Foto principal</p>
-            <p className="text-xs text-neutral-600">Subí desde tu galería o pegá una URL. Si no ponés ninguna se usa una imagen de placeholder.</p>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <p className="text-sm font-semibold text-neutral-900">Fotos del vehículo</p>
+            <p className="text-xs text-neutral-600">
+              La primera imagen es la portada. Podés subir varias desde la galería o agregar URLs (una por línea). Si no cargás ninguna, se usa una imagen por defecto.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
               <label className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#b80c0c] text-white text-sm font-semibold cursor-pointer min-h-[44px] hover:bg-[#9a0a0a] transition-colors">
                 <Upload className="w-4 h-4" />
-                Subir desde galería
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFile} />
+                Subir imágenes
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleArchivos}
+                />
               </label>
-              <span className="text-xs text-neutral-500 self-center">o pegá una URL abajo</span>
             </div>
-            <input
-              type="url"
-              className="w-full p-3 rounded-lg border border-neutral-200 bg-white focus:ring-2 focus:ring-[#b80c0c]/30 focus:outline-none text-sm"
-              placeholder="https://…"
-              value={urlField}
-              onChange={handleUrlChange}
-            />
-            {mainImageUrl && (
-              <div className="w-full max-h-48 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100">
-                <img src={mainImageUrl} alt="" className="w-full h-full object-contain max-h-48" />
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-neutral-500">URLs (una por línea)</label>
+              <textarea
+                className="w-full p-3 rounded-lg border border-neutral-200 bg-white focus:ring-2 focus:ring-[#b80c0c]/30 focus:outline-none text-sm min-h-[72px] font-mono text-xs"
+                placeholder={"https://ejemplo.com/foto1.jpg\nhttps://ejemplo.com/foto2.jpg"}
+                value={urlsPegadas}
+                onChange={(e) => setUrlsPegadas(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={agregarUrlsDesdeTexto}
+                className="text-sm font-semibold text-[#b80c0c] hover:underline"
+              >
+                Añadir URLs a la galería
+              </button>
+            </div>
+            {galeria.length > 0 && (
+              <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {galeria.map((src, idx) => (
+                  <li key={`${idx}-${src.slice(0, 24)}`} className="relative group rounded-lg border border-neutral-200 overflow-hidden bg-neutral-100 aspect-[4/3]">
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <span className="absolute top-1 left-1 text-[10px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded">
+                      {idx === 0 ? "Portada" : idx + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => quitarFoto(idx)}
+                      className="absolute bottom-1 right-1 p-1.5 rounded-full bg-black/55 text-white hover:bg-black/75"
+                      aria-label="Quitar foto"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
 

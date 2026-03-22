@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 const USUARIO_ADMIN = process.env.ADMIN_USER ?? "admin";
-const CONTRASENA_ADMIN = process.env.ADMIN_PASS ?? "gsmautos2026";
+const CONTRASENA_ADMIN = process.env.ADMIN_PASS ?? "admin123";
 
 /**
  * Maneja la autenticación del administrador.

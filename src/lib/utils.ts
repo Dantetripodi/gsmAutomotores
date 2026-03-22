@@ -2,6 +2,13 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { Car, CarCurrency } from "../types";
 
+/** Lista ordenada de todas las fotos del vehículo (portada primero). */
+export function urlsImagenesAuto(car: Pick<Car, "mainImageUrl" | "imageUrls">): string[] {
+  const extra = car.imageUrls?.filter(Boolean) ?? [];
+  if (extra.length === 0) return [car.mainImageUrl];
+  return [car.mainImageUrl, ...extra];
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

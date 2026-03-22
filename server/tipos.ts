@@ -18,6 +18,8 @@ export interface Auto {
   doors?: string;
   status: EstadoAuto;
   mainImageUrl: string;
+  /** Fotos adicionales (la portada es siempre `mainImageUrl`). */
+  imageUrls?: string[];
   description: string;
   segment?: string;
   bodyType?: string;
@@ -44,6 +46,8 @@ export interface CrearAutoDTO {
   condition: "0km" | "usado";
   description: string;
   mainImageUrl?: string;
+  /** URLs extra (sin incluir la principal; la principal va en `mainImageUrl`). */
+  imageUrls?: string[];
   engine?: string;
   color?: string;
   doors?: string;

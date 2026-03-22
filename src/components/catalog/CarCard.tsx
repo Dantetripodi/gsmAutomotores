@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
-import { formatPrice } from "../../lib/utils";
+import { formatPrice, urlsImagenesAuto } from "../../lib/utils";
+import { ImageCarousel } from "../ui/ImageCarousel";
 import type { Car } from "../../types";
 
 type CarCardProps = {
@@ -17,11 +18,11 @@ export function CarCard({ car, onOpen }: CarCardProps) {
       onClick={() => onOpen(car.id)}
     >
       <div className="relative aspect-[4/3] bg-neutral-100">
-        <img
-          src={car.mainImageUrl}
+        <ImageCarousel
+          images={urlsImagenesAuto(car)}
           alt={car.modelName}
-          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
-          referrerPolicy="no-referrer"
+          aspectClass="aspect-[4/3] h-full"
+          compact
         />
         {car.status === "reserved" && (
           <span className="absolute top-3 right-3 bg-amber-100 text-amber-800 px-2.5 py-1 rounded text-[11px] font-semibold">

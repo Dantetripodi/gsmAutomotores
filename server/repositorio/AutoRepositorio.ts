@@ -1,0 +1,109 @@
+import fs from "fs";
+import path from "path";
+import { obtenerDirectorioDatos } from "../rutas";
+import { Repositorio } from "./Repositorio";
+import { SEMILLA_AUTOS } from "../datos/semillaAutos";
+import type { Auto, AutoConSlug, CrearAutoDTO, EstadisticasDashboard, EstadoAuto } from "../tipos";
+
+const IMAGEN_PLACEHOLDER =
+  "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1200";
+
+// Convierte un nombre de marca a slug URL-friendly (ej: "Mercedes-Benz" → "mercedes-benz")
+function aSlug(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
+// Si existe data/cars.json (versión anterior) y aún no existe data/autos.json,
+// migra los datos automáticamente para no perder el catálogo cargado.
+function obtenerSemillaInicial(): Auto[] {
+  const dir = obtenerDirectorioDatos();
+  const archivoNuevo = path.join(dir, "autos.json");
+  const archivoViejo = path.join(dir, "cars.json");
+
+  if (!fs.existsSync(archivoNuevo) && fs.existsSync(archivoViejo)) {
+    try {
+      const datos = JSON.parse(fs.readFileSync(archivoViejo, "utf-8")) as Auto[];
+      console.log("[AutoRepositorio] Datos migrados desde cars.json → autos.json");
+      return datos;
+    } catch {
+      // Si falla la migración, usa la semilla
+    }
+  }
+  return SEMILLA_AUTOS;
+}
+
+export class AutoRepositorio extends Repositorio<Auto> {
+  constructor() {
+    super("autos.json", obtenerSemillaInicial());
+  }
+
+  private enriquecer(auto: Auto): AutoConSlug {
+    return { ...auto, brandSlug: aSlug(auto.brandName) };
+  }
+
+  override obtenerTodas(): AutoConSlug[] {
+    return this.entidades.map((a) => this.enriquecer(a));
+  }
+
+  override obtenerPorId(id: number): AutoConSlug | undefined {
+    const auto = this.entidades.find((a) => a.id === id);
+    return auto ? this.enriquecer(auto) : undefined;
+  }
+
+  filtrar(parametros: { marca?: string; precioMaximo?: number }): AutoConSlug[] {
+    return this.entidades
+      .filter((auto) => {
+        if (parametros.marca) {
+          const slugMarca = aSlug(auto.brandName);
+          const nombreMarca = auto.brandName.toLowerCase();
+          const filtro = parametros.marca.toLowerCase();
+          if (slugMarca !== filtro && nombreMarca !== filtro) return false;
+        }
+        if (parametros.precioMaximo != null && auto.price > parametros.precioMaximo) {
+          return false;
+        }
+        return true;
+      })
+      .map((a) => this.enriquecer(a));
+  }
+
+  crearAuto(datos: CrearAutoDTO): AutoConSlug {
+    const nuevo = this.crear({
+      ...datos,
+      mainImageUrl: datos.mainImageUrl?.trim() || IMAGEN_PLACEHOLDER,
+      status: "available",
+    });
+    return this.enriquecer(nuevo);
+  }
+
+  actualizarEstado(id: number, estado: EstadoAuto): AutoConSlug | undefined {
+    const actualizado = this.actualizar(id, { status: estado });
+    return actualizado ? this.enriquecer(actualizado) : undefined;
+  }
+
+  obtenerMarcas(): Array<{ id: string; name: string; slug: string }> {
+    const vistas = new Map<string, { id: string; name: string; slug: string }>();
+    for (const auto of this.entidades) {
+      const slug = aSlug(auto.brandName);
+      if (!vistas.has(slug)) {
+        vistas.set(slug, { id: slug, name: auto.brandName, slug });
+      }
+    }
+    return [...vistas.values()];
+  }
+
+  obtenerEstadisticas(): EstadisticasDashboard {
+    return {
+      totalStock: this.entidades.length,
+      available: this.entidades.filter((a) => a.status === "available").length,
+      reserved: this.entidades.filter((a) => a.status === "reserved").length,
+      sold: this.entidades.filter((a) => a.status === "sold").length,
+      recentInquiries: 28, // demo
+    };
+  }
+}

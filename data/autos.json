@@ -1,0 +1,179 @@
+[
+  {
+    "id": 1,
+    "brandName": "Renault",
+    "modelName": "Kwid",
+    "versionName": "1.0 Iconic Bt L25",
+    "year": 2025,
+    "price": 18900000,
+    "currency": "ARS",
+    "mileage": 0,
+    "transmission": "Manual",
+    "fuelType": "Nafta",
+    "engine": "1.0 SCe",
+    "color": "Naranja Atacama",
+    "doors": "5",
+    "status": "available",
+    "mainImageUrl": "https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&q=80&w=1400",
+    "description": "El Renault Kwid te brinda la practicidad de un compacto y el diseño de un SUV llevando tu experiencia de manejo a otro nivel.",
+    "segment": "Hatchback",
+    "bodyType": "Hatchback",
+    "condition": "0km",
+    "specSummary": {
+      "Segmento": "Hatchback",
+      "Longitud (mm)": "3.680",
+      "Cilindrada (CC)": "999",
+      "Tipo de transmisión": "Manual",
+      "Tracción": "Delantera"
+    },
+    "equipment": {
+      "Llanta": "Aleación",
+      "Aire acondicionado": "Sí",
+      "Ventanas eléctricas delanteras": "Sí"
+    },
+    "otherFeatures": {
+      "Puertas": "5",
+      "Capacidad de asientos": "5",
+      "Compatibilidad con Bluetooth": "Sí"
+    }
+  },
+  {
+    "id": 2,
+    "brandName": "Renault",
+    "modelName": "Sandero",
+    "versionName": "1.6 8V Expression Pack",
+    "year": 2019,
+    "price": 15950000,
+    "currency": "ARS",
+    "mileage": 97600,
+    "transmission": "Manual",
+    "fuelType": "Nafta",
+    "engine": "1.6 8V",
+    "color": "Gris",
+    "doors": "5",
+    "status": "available",
+    "mainImageUrl": "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&q=80&w=1200",
+    "description": "Sandero en buen estado general, ideal para ciudad y ruta. Service al día, documentación lista para transferir.",
+    "segment": "Hatchback",
+    "bodyType": "Hatchback",
+    "condition": "usado",
+    "specSummary": {
+      "Segmento": "Hatchback",
+      "Tipo de transmisión": "Manual",
+      "Tracción": "Delantera",
+      "Combustible": "Nafta"
+    },
+    "equipment": {
+      "Aire acondicionado": "Sí",
+      "Dirección asistida": "Sí",
+      "Cierre centralizado": "Sí"
+    },
+    "otherFeatures": {
+      "Puertas": "5",
+      "Capacidad de asientos": "5",
+      "Airbags": "2"
+    }
+  },
+  {
+    "id": 3,
+    "brandName": "Porsche",
+    "modelName": "911 GT3",
+    "versionName": "Touring",
+    "year": 2023,
+    "price": 245900,
+    "currency": "USD",
+    "mileage": 1200,
+    "transmission": "Manual",
+    "fuelType": "Nafta",
+    "engine": "4.0L F6",
+    "color": "GT Silver",
+    "doors": "2",
+    "status": "available",
+    "mainImageUrl": "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&q=80&w=1200",
+    "description": "Este Porsche 911 GT3 Touring se encuentra en estado inmaculado. Equipado con el Touring Package.",
+    "segment": "Deportivo",
+    "bodyType": "Coupé",
+    "condition": "usado",
+    "specSummary": {
+      "Segmento": "Deportivo",
+      "Motor": "4.0L F6",
+      "Tracción": "Trasera"
+    },
+    "equipment": {
+      "Frenos cerámicos": "Sí",
+      "Control de estabilidad": "Sí"
+    },
+    "otherFeatures": {
+      "Puertas": "2",
+      "Capacidad de asientos": "4"
+    }
+  },
+  {
+    "id": 4,
+    "brandName": "Porsche",
+    "modelName": "Taycan",
+    "versionName": "Turbo S",
+    "year": 2023,
+    "price": 185900,
+    "currency": "USD",
+    "mileage": 500,
+    "transmission": "Automática",
+    "fuelType": "Eléctrico",
+    "engine": "Dual Motor",
+    "color": "Blanco Carrara",
+    "doors": "4",
+    "status": "available",
+    "mainImageUrl": "https://images.unsplash.com/photo-1611605698335-8b1569810432?auto=format&fit=crop&q=80&w=1200",
+    "description": "Rendimiento eléctrico total. Frenos cerámicos, interior de lujo y aceleración excepcional.",
+    "segment": "Deportivo",
+    "bodyType": "Sedán",
+    "condition": "0km",
+    "specSummary": {
+      "Segmento": "Deportivo",
+      "Propulsión": "Eléctrica",
+      "Tipo de transmisión": "Automática"
+    },
+    "equipment": {
+      "Frenos cerámicos": "Sí",
+      "Pantalla táctil": "Sí"
+    },
+    "otherFeatures": {
+      "Puertas": "4",
+      "Capacidad de asientos": "4"
+    }
+  },
+  {
+    "id": 5,
+    "brandName": "BMW",
+    "modelName": "M5",
+    "versionName": "Competition",
+    "year": 2021,
+    "price": 98500,
+    "currency": "USD",
+    "mileage": 34000,
+    "transmission": "Automática",
+    "fuelType": "Nafta",
+    "engine": "4.4L V8",
+    "color": "Zafiro Negro",
+    "doors": "4",
+    "status": "reserved",
+    "mainImageUrl": "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=1200",
+    "description": "Paquete ejecutivo, sonido premium, asientos ventilados. Un sedán de lujo con alma deportiva.",
+    "segment": "Sedán",
+    "bodyType": "Sedán",
+    "condition": "usado",
+    "specSummary": {
+      "Segmento": "Sedán",
+      "Motor": "4.4L V8",
+      "Tipo de transmisión": "Automática"
+    },
+    "equipment": {
+      "Asientos eléctricos": "Sí",
+      "Sunroof": "Sí"
+    },
+    "otherFeatures": {
+      "Puertas": "4",
+      "Capacidad de asientos": "5"
+    }
+  }
+]

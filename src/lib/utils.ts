@@ -6,21 +6,26 @@ import type { Car, CarCurrency } from "../types";
 const RE_DRIVE_FILE_D = /https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i;
 const RE_DRIVE_OPEN_ID = /https?:\/\/drive\.google\.com\/open\?[^#]*\bid=([a-zA-Z0-9_-]+)/i;
 
+function driveIdAWsrv(fileId: string): string {
+  const thumb = `https://drive.google.com/thumbnail?id=${fileId}&sz=w2000`;
+  return `https://wsrv.nl/?url=${encodeURIComponent(thumb)}&output=jpg&n=-1`;
+}
+
 /**
- * Convierte enlaces de la UI de Drive (página /view) en URL que el navegador puede mostrar en <img>.
- * Usa el endpoint de miniaturas (más estable que uc?export=view para incrustar).
+ * Convierte enlaces de Google Drive en URLs de wsrv.nl (CDN proxy público).
+ * wsrv.nl accede a Drive desde el browser sin los bloqueos de IPs cloud.
  * El archivo debe estar compartido: "Cualquiera con el enlace" (lector).
  */
 export function normalizarUrlImagenDrive(url: string): string {
   const t = url.trim();
-  if (!t) return t;
+  if (!t || t.includes("wsrv.nl")) return t;
   const mFile = t.match(RE_DRIVE_FILE_D);
-  if (mFile) return `https://drive.google.com/thumbnail?id=${mFile[1]}&sz=w2000`;
+  if (mFile) return driveIdAWsrv(mFile[1]);
   const mOpen = t.match(RE_DRIVE_OPEN_ID);
-  if (mOpen) return `https://drive.google.com/thumbnail?id=${mOpen[1]}&sz=w2000`;
-  if (t.includes("drive.google.com/uc?") && t.includes("id=")) {
+  if (mOpen) return driveIdAWsrv(mOpen[1]);
+  if (t.includes("drive.google.com")) {
     const id = t.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (id) return `https://drive.google.com/thumbnail?id=${id[1]}&sz=w2000`;
+    if (id) return driveIdAWsrv(id[1]);
   }
   return t;
 }
@@ -37,10 +42,8 @@ export function urlParaMostrarImagen(url: string): string {
   try {
     const u = new URL(n);
     const host = u.hostname;
-    const usarProxy =
-      host === "drive.google.com" ||
-      host.endsWith(".googleusercontent.com") ||
-      host === "images.unsplash.com";
+    // wsrv.nl y otras URLs directas no necesitan proxy
+    const usarProxy = host.endsWith(".googleusercontent.com");
     if (!usarProxy) return n;
     const path = `/api/image-proxy?url=${encodeURIComponent(n)}`;
     if (URL_API_BASE) return `${URL_API_BASE.replace(/\/$/, "")}${path}`;

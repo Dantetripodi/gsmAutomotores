@@ -1,4 +1,4 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useRef, useEffect } from "react";
 import { AnimatePresence } from "motion/react";
 import { AppHeader } from "./components/layout/AppHeader";
 import { AppFooter } from "./components/layout/AppFooter";
@@ -27,11 +27,20 @@ export default function App() {
   const { data: brandsData } = useAsync(() => marcasServicio.obtenerMarcas());
   const brands = brandsData ?? [];
 
-  const { data: carsData, loading } = useAsync(
+  const { data: carsData, loading, refetch: refetchCatalogo } = useAsync(
     () => catalogoServicio.obtenerCatalogo({ brand: selectedBrand || undefined, price_max: priceMax }),
     [selectedBrand, priceMax]
   );
   const cars = carsData ?? [];
+
+  const vistaAnteriorRef = useRef<AppView | null>(null);
+  useEffect(() => {
+    const prev = vistaAnteriorRef.current;
+    vistaAnteriorRef.current = view;
+    if (view === "catalog" && prev !== null && prev !== "catalog") {
+      void refetchCatalogo();
+    }
+  }, [view, refetchCatalogo]);
 
   const navigateToDetails = (id: number) => {
     setSelectedCarId(id);

@@ -67,6 +67,25 @@ class CatalogoServicio {
     return res.json();
   }
 
+  async actualizar(id: number, payload: CrearAutoPayload, token: string): Promise<Car> {
+    const res = await fetch(urlApi(`/api/catalog/${id}`), {
+      method: "PATCH",
+      headers: encabezadosAuth(token),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      let mensaje = "No se pudo actualizar el vehículo.";
+      try {
+        const j = (await res.json()) as { mensaje?: string };
+        if (j.mensaje) mensaje = j.mensaje;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(mensaje);
+    }
+    return res.json();
+  }
+
   async actualizarEstado(id: number, estado: CarStatus, token: string): Promise<Car> {
     const res = await fetch(urlApi(`/api/catalog/${id}/status`), {
       method: "PATCH",

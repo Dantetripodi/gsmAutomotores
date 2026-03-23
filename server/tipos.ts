@@ -32,6 +32,9 @@ export interface Auto {
 // Versión enriquecida con el slug de marca calculado (nunca se persiste)
 export type AutoConSlug = Auto & { brandSlug: string };
 
+/** Mismos campos editables que al crear; el servidor conserva `id` y `status` salvo lógica aparte. */
+export type ActualizarAutoDTO = CrearAutoDTO;
+
 // DTO para crear un auto nuevo
 export interface CrearAutoDTO {
   brandName: string;

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { motion } from "motion/react";
-import { ChevronRight, Trash2, LogOut, CircleDot } from "lucide-react";
+import { ChevronRight, Trash2, LogOut, CircleDot, Pencil } from "lucide-react";
 import { formatPrice, urlsImagenesAuto } from "../../lib/utils";
 import { catalogoServicio, dashboardServicio } from "../../services";
 import { useOnInit } from "../../hooks/useOnInit";
@@ -33,6 +33,7 @@ const STATUS_STYLE: Record<CarStatus, string> = {
 export function AdminDashboardView({ onBack }: Props) {
   const { token, logout } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [formCar, setFormCar] = useState<Car | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [stock, setStock] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +105,10 @@ export function AdminDashboardView({ onBack }: Props) {
           </button>
           <button
             type="button"
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              setFormCar(null);
+              setShowAddForm(true);
+            }}
             className="px-5 py-3 bg-[#b80c0c] text-white rounded-lg font-semibold text-sm shadow-sm hover:bg-[#9a0a0a] min-h-[44px]"
           >
             Agregar vehículo
@@ -139,18 +143,26 @@ export function AdminDashboardView({ onBack }: Props) {
           <p className="text-sm text-neutral-500 py-8">Cargando…</p>
         ) : (
           <ul className="space-y-3">
-            {stock.map((car) => (
+            {stock.map((car) => {
+              const portada = urlsImagenesAuto(car)[0];
+              return (
               <li
                 key={car.id}
                 className="flex flex-col sm:flex-row sm:items-stretch gap-3 p-3 md:p-4 bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden"
               >
                 <div className="w-full sm:w-36 md:w-40 h-28 sm:h-auto shrink-0 rounded-lg bg-neutral-100 overflow-hidden">
-                  <img
-                    src={urlsImagenesAuto(car)[0]}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                  {portada ? (
+                    <img
+                      src={portada}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full min-h-[7rem] flex items-center justify-center text-[10px] text-neutral-500 px-2 text-center">
+                      Sin foto
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -180,6 +192,18 @@ export function AdminDashboardView({ onBack }: Props) {
 
                     <button
                       type="button"
+                      onClick={() => {
+                        setFormCar(car);
+                        setShowAddForm(true);
+                      }}
+                      className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-neutral-200 text-neutral-800 hover:bg-neutral-50 text-sm font-semibold min-h-[44px] w-full sm:w-auto"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Editar
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => handleDelete(car.id)}
                       className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 text-sm font-semibold min-h-[44px] w-full sm:w-auto"
                     >
@@ -189,19 +213,27 @@ export function AdminDashboardView({ onBack }: Props) {
                   </div>
                 </div>
               </li>
-            ))}
+            );
+            })}
           </ul>
         )}
       </section>
 
       {showAddForm && (
-        <AddCarForm
-          onClose={() => setShowAddForm(false)}
-          onSaved={() => {
-            loadData();
-            setShowAddForm(false);
-          }}
-        />
+        <Fragment key={formCar ? `edit-${formCar.id}` : "nuevo"}>
+          <AddCarForm
+            carToEdit={formCar}
+            onClose={() => {
+              setShowAddForm(false);
+              setFormCar(null);
+            }}
+            onSaved={() => {
+              loadData();
+              setShowAddForm(false);
+              setFormCar(null);
+            }}
+          />
+        </Fragment>
       )}
     </motion.div>
   );

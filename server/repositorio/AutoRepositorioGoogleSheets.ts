@@ -3,10 +3,7 @@ import { SEMILLA_AUTOS } from "../datos/semillaAutos";
 import { MAX_CARACTERES_CELDA_GOOGLE_SHEETS } from "../utils/limiteCeldaGoogleSheets";
 import { slugMarca } from "../utils/slugMarca";
 import type { IAutoRepositorio } from "./IAutoRepositorio";
-import type { Auto, AutoConSlug, CrearAutoDTO, EstadisticasDashboard, EstadoAuto } from "../tipos";
-
-const IMAGEN_PLACEHOLDER =
-  "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1200";
+import type { ActualizarAutoDTO, Auto, AutoConSlug, CrearAutoDTO, EstadisticasDashboard, EstadoAuto } from "../tipos";
 
 const HEADERS = [
   "id",
@@ -88,7 +85,7 @@ function filaAAuto(row: string[]): Auto | null {
     status: (["available", "reserved", "sold"].includes(r[13])
       ? r[13]
       : "available") as EstadoAuto,
-    mainImageUrl: r[14]?.trim() || IMAGEN_PLACEHOLDER,
+    mainImageUrl: r[14]?.trim() ?? "",
     imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : undefined,
     description: r[16] ?? "",
     segment: r[17]?.trim() || undefined,
@@ -103,7 +100,7 @@ function filaAAuto(row: string[]): Auto | null {
 function celdaTextoSeguro(s: string): string {
   const max = MAX_CARACTERES_CELDA_GOOGLE_SHEETS;
   if (s.length <= max) return s;
-  if (s.startsWith("data:")) return IMAGEN_PLACEHOLDER;
+  if (s.startsWith("data:")) return "";
   return s.slice(0, max - 3) + "...";
 }
 
@@ -120,7 +117,7 @@ function joinImageUrlsSeguro(urls: string[]): string {
 }
 
 function autoAFila(a: Auto): string[] {
-  const principal = celdaTextoSeguro((a.mainImageUrl || "").trim() || IMAGEN_PLACEHOLDER);
+  const principal = celdaTextoSeguro((a.mainImageUrl || "").trim());
   const imageUrls = joinImageUrlsSeguro(a.imageUrls ?? []);
   return [
     String(a.id),
@@ -291,7 +288,7 @@ export class AutoRepositorioGoogleSheets implements IAutoRepositorio {
     const principal =
       datos.mainImageUrl?.trim() ||
       datos.imageUrls?.find((u) => u?.trim())?.trim() ||
-      IMAGEN_PLACEHOLDER;
+      "";
     const extras = (datos.imageUrls ?? [])
       .map((u) => u.trim())
       .filter(Boolean)
@@ -320,6 +317,42 @@ export class AutoRepositorioGoogleSheets implements IAutoRepositorio {
     autos.push(nuevo);
     await this.persistirTodos(autos);
     return enriquecer(nuevo);
+  }
+
+  async actualizarAuto(id: number, datos: ActualizarAutoDTO): Promise<AutoConSlug | undefined> {
+    const autos = await this.leerAutos();
+    const idx = autos.findIndex((a) => a.id === id);
+    if (idx === -1) return undefined;
+    const previo = autos[idx];
+    const principal =
+      datos.mainImageUrl?.trim() ||
+      datos.imageUrls?.find((u) => u?.trim())?.trim() ||
+      "";
+    const extras = (datos.imageUrls ?? [])
+      .map((u) => u.trim())
+      .filter(Boolean)
+      .filter((u) => u !== principal);
+    autos[idx] = {
+      ...previo,
+      brandName: datos.brandName,
+      modelName: datos.modelName,
+      versionName: datos.versionName,
+      year: datos.year,
+      price: datos.price,
+      currency: datos.currency,
+      mileage: datos.mileage,
+      transmission: datos.transmission,
+      fuelType: datos.fuelType,
+      engine: datos.engine,
+      color: datos.color,
+      doors: datos.doors,
+      description: datos.description,
+      condition: datos.condition,
+      mainImageUrl: principal,
+      imageUrls: extras.length > 0 ? extras : undefined,
+    };
+    await this.persistirTodos(autos);
+    return enriquecer(autos[idx]);
   }
 
   async actualizarEstado(id: number, estado: EstadoAuto): Promise<AutoConSlug | undefined> {

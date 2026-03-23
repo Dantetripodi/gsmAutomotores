@@ -1,10 +1,10 @@
-import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
+import { useState, useRef, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { motion } from "motion/react";
 import { X, Upload, Trash2 } from "lucide-react";
 import { catalogoServicio, marcasServicio, type CrearAutoPayload } from "../../services";
 import { useAuth } from "../../context/AuthContext";
-import { useOnInit } from "../../hooks/useOnInit";
-import type { CarCurrency } from "../../types";
+import type { Car, CarCurrency } from "../../types";
+import { urlsImagenesAuto } from "../../lib/utils";
 import {
   comprimirImagenArchivo,
   MAX_DATA_URL_EXTRA,
@@ -14,11 +14,13 @@ import {
 type Props = {
   onClose: () => void;
   onSaved: () => void;
+  /** Si viene definido, el formulario edita ese vehículo (PATCH). */
+  carToEdit?: Car | null;
 };
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-export function AddCarForm({ onClose, onSaved }: Props) {
+export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,9 +48,31 @@ export function AddCarForm({ onClose, onSaved }: Props) {
     doors: "4",
   });
 
-  useOnInit(() => {
+  useEffect(() => {
     marcasServicio.obtenerMarcas().then((brands) => setBrandSuggestions(brands.map((b) => b.name)));
-  });
+  }, []);
+
+  useEffect(() => {
+    if (!carToEdit) return;
+    setBrandName(carToEdit.brandName);
+    setModelName(carToEdit.modelName);
+    setCurrency(carToEdit.currency);
+    setGaleria(urlsImagenesAuto(carToEdit));
+    setUrlsPegadas("");
+    setFormData({
+      versionName: carToEdit.versionName ?? "",
+      year: carToEdit.year,
+      price: carToEdit.price,
+      mileage: carToEdit.mileage,
+      transmission: carToEdit.transmission,
+      fuelType: carToEdit.fuelType,
+      condition: carToEdit.condition ?? "usado",
+      description: carToEdit.description,
+      engine: carToEdit.engine ?? "",
+      color: carToEdit.color ?? "",
+      doors: carToEdit.doors ?? "4",
+    });
+  }, [carToEdit?.id]);
 
   const handleArchivos = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -71,11 +95,14 @@ export function AddCarForm({ onClose, onSaved }: Props) {
     e.target.value = "";
   };
 
-  const agregarUrlsDesdeTexto = () => {
-    const lineas = urlsPegadas
+  const urlsHttpsDesdeTexto = (texto: string) =>
+    texto
       .split(/\r?\n/)
       .map((l) => l.trim())
       .filter((l) => /^https?:\/\//i.test(l));
+
+  const agregarUrlsDesdeTexto = () => {
+    const lineas = urlsHttpsDesdeTexto(urlsPegadas);
     if (lineas.length) setGaleria((prev) => [...prev, ...lineas]);
     setUrlsPegadas("");
   };
@@ -89,7 +116,13 @@ export function AddCarForm({ onClose, onSaved }: Props) {
     if (!token || !brandName.trim() || !modelName.trim()) return;
 
     setSubmitting(true);
-    const fotos = galeria.filter(Boolean);
+    const desdeCuadro = urlsHttpsDesdeTexto(urlsPegadas);
+    const vistos = new Set<string>();
+    const fotos = [...galeria.filter(Boolean), ...desdeCuadro].filter((u) => {
+      if (vistos.has(u)) return false;
+      vistos.add(u);
+      return true;
+    });
     const payload: CrearAutoPayload = {
       brandName: brandName.trim(),
       modelName: modelName.trim(),
@@ -105,12 +138,16 @@ export function AddCarForm({ onClose, onSaved }: Props) {
       engine: formData.engine.trim() || undefined,
       color: formData.color.trim() || undefined,
       doors: formData.doors || undefined,
-      ...(fotos[0] ? { mainImageUrl: fotos[0] } : {}),
-      ...(fotos.length > 1 ? { imageUrls: fotos.slice(1) } : {}),
+      mainImageUrl: fotos[0] ?? "",
+      imageUrls: fotos.length > 1 ? fotos.slice(1) : [],
     };
 
     try {
-      await catalogoServicio.crear(payload, token);
+      if (carToEdit) {
+        await catalogoServicio.actualizar(carToEdit.id, payload, token);
+      } else {
+        await catalogoServicio.crear(payload, token);
+      }
       onSaved();
     } catch (err) {
       alert(err instanceof Error ? err.message : "No se pudo guardar el vehículo.");
@@ -138,7 +175,9 @@ export function AddCarForm({ onClose, onSaved }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-neutral-900">Agregar vehículo</h3>
+          <h3 className="text-xl font-bold text-neutral-900">
+            {carToEdit ? "Editar vehículo" : "Agregar vehículo"}
+          </h3>
           <button
             type="button"
             onClick={onClose}
@@ -322,7 +361,7 @@ export function AddCarForm({ onClose, onSaved }: Props) {
           <div className="space-y-3 rounded-xl border border-neutral-200 p-4 bg-neutral-50">
             <p className="text-sm font-semibold text-neutral-900">Fotos del vehículo</p>
             <p className="text-xs text-neutral-600">
-              La primera imagen es la portada. Podés subir varias desde la galería o agregar URLs (una por línea). Si no cargás ninguna, se usa una imagen por defecto.
+              La primera imagen es la portada. Podés subir varias desde la galería o pegar URLs (una por línea); también se guardan al pulsar «Guardar» aunque no hayas pulsado «Añadir URLs a la galería». Si quitás todas las fotos, en el catálogo se verá el bloque vacío (sin imagen).
             </p>
             <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               Con Google Sheets el tamaño por celda es limitado: al subir archivos, la app{" "}
@@ -396,7 +435,7 @@ export function AddCarForm({ onClose, onSaved }: Props) {
             disabled={submitting || !brandName.trim() || !modelName.trim()}
             className="w-full py-3.5 bg-[#b80c0c] text-white rounded-lg font-semibold text-base min-h-[48px] hover:bg-[#9a0a0a] transition-colors disabled:opacity-50"
           >
-            {submitting ? "Guardando…" : "Guardar vehículo"}
+            {submitting ? "Guardando…" : carToEdit ? "Guardar cambios" : "Guardar vehículo"}
           </button>
         </form>
       </motion.div>

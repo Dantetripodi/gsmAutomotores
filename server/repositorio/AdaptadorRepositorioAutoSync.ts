@@ -1,6 +1,6 @@
 import type { AutoRepositorio } from "./AutoRepositorio";
 import type { IAutoRepositorio } from "./IAutoRepositorio";
-import type { CrearAutoDTO, EstadoAuto } from "../tipos";
+import type { ActualizarAutoDTO, CrearAutoDTO, EstadoAuto } from "../tipos";
 
 export class AdaptadorRepositorioAutoSync implements IAutoRepositorio {
   constructor(private readonly repo: AutoRepositorio) {}
@@ -19,6 +19,10 @@ export class AdaptadorRepositorioAutoSync implements IAutoRepositorio {
 
   crearAuto(datos: CrearAutoDTO) {
     return Promise.resolve(this.repo.crearAuto(datos));
+  }
+
+  actualizarAuto(id: number, datos: ActualizarAutoDTO) {
+    return Promise.resolve(this.repo.actualizarAuto(id, datos));
   }
 
   actualizarEstado(id: number, estado: EstadoAuto) {

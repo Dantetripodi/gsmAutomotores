@@ -4,9 +4,11 @@ import type { Car, CarCurrency } from "../types";
 
 /** Lista ordenada de todas las fotos del vehículo (portada primero). */
 export function urlsImagenesAuto(car: Pick<Car, "mainImageUrl" | "imageUrls">): string[] {
-  const extra = car.imageUrls?.filter(Boolean) ?? [];
-  if (extra.length === 0) return [car.mainImageUrl];
-  return [car.mainImageUrl, ...extra];
+  const principal = car.mainImageUrl?.trim();
+  const extra = (car.imageUrls ?? []).map((u) => u?.trim()).filter(Boolean) as string[];
+  if (extra.length === 0) return principal ? [principal] : [];
+  if (!principal) return extra;
+  return [principal, ...extra.filter((u) => u !== principal)];
 }
 
 export function cn(...inputs: ClassValue[]) {

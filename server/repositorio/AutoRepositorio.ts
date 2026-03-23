@@ -4,10 +4,7 @@ import { obtenerDirectorioDatos } from "../rutas";
 import { slugMarca } from "../utils/slugMarca";
 import { Repositorio } from "./Repositorio";
 import { SEMILLA_AUTOS } from "../datos/semillaAutos";
-import type { Auto, AutoConSlug, CrearAutoDTO, EstadisticasDashboard, EstadoAuto } from "../tipos";
-
-const IMAGEN_PLACEHOLDER =
-  "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1200";
+import type { ActualizarAutoDTO, Auto, AutoConSlug, CrearAutoDTO, EstadisticasDashboard, EstadoAuto } from "../tipos";
 
 // Si existe data/cars.json (versión anterior) y aún no existe data/autos.json,
 // migra los datos automáticamente para no perder el catálogo cargado.
@@ -67,7 +64,7 @@ export class AutoRepositorio extends Repositorio<Auto> {
     const principal =
       datos.mainImageUrl?.trim() ||
       datos.imageUrls?.find((u) => u?.trim())?.trim() ||
-      IMAGEN_PLACEHOLDER;
+      "";
     const extras = (datos.imageUrls ?? [])
       .map((u) => u.trim())
       .filter(Boolean)
@@ -80,6 +77,37 @@ export class AutoRepositorio extends Repositorio<Auto> {
       status: "available",
     });
     return this.enriquecer(nuevo);
+  }
+
+  actualizarAuto(id: number, datos: ActualizarAutoDTO): AutoConSlug | undefined {
+    if (!this.entidades.some((e) => e.id === id)) return undefined;
+    const principal =
+      datos.mainImageUrl?.trim() ||
+      datos.imageUrls?.find((u) => u?.trim())?.trim() ||
+      "";
+    const extras = (datos.imageUrls ?? [])
+      .map((u) => u.trim())
+      .filter(Boolean)
+      .filter((u) => u !== principal);
+    const actualizado = this.actualizar(id, {
+      brandName: datos.brandName,
+      modelName: datos.modelName,
+      versionName: datos.versionName,
+      year: datos.year,
+      price: datos.price,
+      currency: datos.currency,
+      mileage: datos.mileage,
+      transmission: datos.transmission,
+      fuelType: datos.fuelType,
+      engine: datos.engine,
+      color: datos.color,
+      doors: datos.doors,
+      description: datos.description,
+      condition: datos.condition,
+      mainImageUrl: principal,
+      imageUrls: extras.length > 0 ? extras : undefined,
+    });
+    return actualizado ? this.enriquecer(actualizado) : undefined;
   }
 
   actualizarEstado(id: number, estado: EstadoAuto): AutoConSlug | undefined {

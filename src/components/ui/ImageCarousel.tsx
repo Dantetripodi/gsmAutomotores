@@ -43,7 +43,7 @@ export function ImageCarousel({ images, alt, className, aspectClass = "aspect-[4
         src={urls[index]}
         alt={alt}
         className="w-full h-full object-cover"
-        referrerPolicy="no-referrer"
+        referrerPolicy={urls[index].includes("drive.google.com") ? "strict-origin-when-cross-origin" : "no-referrer"}
       />
 
       {total > 1 && (

@@ -6,16 +6,21 @@ const RE_DRIVE_FILE_D = /https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+
 const RE_DRIVE_OPEN_ID = /https?:\/\/drive\.google\.com\/open\?[^#]*\bid=([a-zA-Z0-9_-]+)/;
 
 /**
- * Convierte enlaces de la UI de Drive (página /view) en URL directa para usar en <img>.
- * El archivo debe estar compartido como "Cualquiera con el enlace".
+ * Convierte enlaces de la UI de Drive (página /view) en URL que el navegador puede mostrar en <img>.
+ * Usa el endpoint de miniaturas (más estable que uc?export=view para incrustar).
+ * El archivo debe estar compartido: "Cualquiera con el enlace" (lector).
  */
 export function normalizarUrlImagenDrive(url: string): string {
   const t = url.trim();
   if (!t) return t;
   const mFile = t.match(RE_DRIVE_FILE_D);
-  if (mFile) return `https://drive.google.com/uc?export=view&id=${mFile[1]}`;
+  if (mFile) return `https://drive.google.com/thumbnail?id=${mFile[1]}&sz=w2000`;
   const mOpen = t.match(RE_DRIVE_OPEN_ID);
-  if (mOpen) return `https://drive.google.com/uc?export=view&id=${mOpen[1]}`;
+  if (mOpen) return `https://drive.google.com/thumbnail?id=${mOpen[1]}&sz=w2000`;
+  if (t.includes("drive.google.com/uc?") && t.includes("id=")) {
+    const id = t.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (id) return `https://drive.google.com/thumbnail?id=${id[1]}&sz=w2000`;
+  }
   return t;
 }
 

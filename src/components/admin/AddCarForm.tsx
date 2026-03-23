@@ -406,7 +406,14 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
               <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {galeria.map((src, idx) => (
                   <li key={`${idx}-${src.slice(0, 24)}`} className="relative group rounded-lg border border-neutral-200 overflow-hidden bg-neutral-100 aspect-[4/3]">
-                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={normalizarUrlImagenDrive(src)}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      referrerPolicy={
+                        src.includes("drive.google.com") ? "strict-origin-when-cross-origin" : "no-referrer"
+                      }
+                    />
                     <span className="absolute top-1 left-1 text-[10px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded">
                       {idx === 0 ? "Portada" : idx + 1}
                     </span>

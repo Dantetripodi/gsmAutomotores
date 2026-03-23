@@ -28,6 +28,12 @@ export async function crearApp() {
   }
   app.use(express.json({ limit: "20mb" }));
 
+  // Evita que el navegador cachee las respuestas del API (causa 304 con datos viejos)
+  app.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    next();
+  });
+
   app.use("/api", crearImageProxyRouter());
 
   const authServicio = new AuthServicio();

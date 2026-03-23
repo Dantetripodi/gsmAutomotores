@@ -15,10 +15,12 @@ type Props = {
 export function ImageCarousel({ images, alt, className, aspectClass = "aspect-[4/3]", compact }: Props) {
   const urls = images.filter(Boolean);
   const [index, setIndex] = useState(0);
+  const [falloPorIndice, setFalloPorIndice] = useState<Record<number, boolean>>({});
   const total = urls.length;
 
   useEffect(() => {
     setIndex(0);
+    setFalloPorIndice({});
   }, [urls.join("|")]);
 
   const avanzar = useCallback(
@@ -37,14 +39,24 @@ export function ImageCarousel({ images, alt, className, aspectClass = "aspect-[4
     "absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center rounded-full bg-black/45 text-white hover:bg-black/60 transition-colors";
   const btnSize = compact ? "w-8 h-8" : "w-10 h-10";
 
+  const srcActual = urls[index];
+  const imagenRota = falloPorIndice[index];
+
   return (
     <div className={cn("relative overflow-hidden bg-neutral-100", aspectClass, className)}>
-      <img
-        src={urls[index]}
-        alt={alt}
-        className="w-full h-full object-cover"
-        referrerPolicy={urls[index].includes("drive.google.com") ? "strict-origin-when-cross-origin" : "no-referrer"}
-      />
+      {imagenRota ? (
+        <div className="w-full h-full flex items-center justify-center bg-neutral-200 text-neutral-500 text-xs px-3 text-center">
+          No se pudo cargar la foto
+        </div>
+      ) : (
+        <img
+          src={srcActual}
+          alt={alt}
+          className="w-full h-full object-cover"
+          referrerPolicy={srcActual.includes("image-proxy") ? undefined : "no-referrer"}
+          onError={() => setFalloPorIndice((f) => ({ ...f, [index]: true }))}
+        />
+      )}
 
       {total > 1 && (
         <>

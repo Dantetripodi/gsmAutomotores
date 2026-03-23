@@ -4,7 +4,7 @@ import { X, Upload, Trash2 } from "lucide-react";
 import { catalogoServicio, marcasServicio, type CrearAutoPayload } from "../../services";
 import { useAuth } from "../../context/AuthContext";
 import type { Car, CarCurrency } from "../../types";
-import { normalizarUrlImagenDrive, urlsImagenesAuto } from "../../lib/utils";
+import { normalizarUrlImagenDrive, urlParaMostrarImagen, urlsImagenesAuto } from "../../lib/utils";
 import {
   comprimirImagenArchivo,
   MAX_DATA_URL_EXTRA,
@@ -404,15 +404,15 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
             </div>
             {galeria.length > 0 && (
               <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {galeria.map((src, idx) => (
+                {galeria.map((src, idx) => {
+                  const srcMostrar = urlParaMostrarImagen(src);
+                  return (
                   <li key={`${idx}-${src.slice(0, 24)}`} className="relative group rounded-lg border border-neutral-200 overflow-hidden bg-neutral-100 aspect-[4/3]">
                     <img
-                      src={normalizarUrlImagenDrive(src)}
+                      src={srcMostrar}
                       alt=""
                       className="w-full h-full object-cover"
-                      referrerPolicy={
-                        src.includes("drive.google.com") ? "strict-origin-when-cross-origin" : "no-referrer"
-                      }
+                      referrerPolicy={srcMostrar.includes("image-proxy") ? undefined : "no-referrer"}
                     />
                     <span className="absolute top-1 left-1 text-[10px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded">
                       {idx === 0 ? "Portada" : idx + 1}
@@ -426,7 +426,8 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </li>
-                ))}
+                );
+                })}
               </ul>
             )}
           </div>

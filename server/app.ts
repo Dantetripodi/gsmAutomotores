@@ -9,6 +9,7 @@ import { crearCatalogoRouter } from "./controlador/CatalogoControlador";
 import { crearMarcasRouter } from "./controlador/MarcasControlador";
 import { crearDashboardRouter } from "./controlador/DashboardControlador";
 import { crearTasacionRouter } from "./controlador/TasacionControlador";
+import { crearImageProxyRouter } from "./controlador/ImageProxyControlador";
 
 export async function crearApp() {
   const app = express();
@@ -26,6 +27,8 @@ export async function crearApp() {
     });
   }
   app.use(express.json({ limit: "20mb" }));
+
+  app.use("/api", crearImageProxyRouter());
 
   const authServicio = new AuthServicio();
   const autoRepositorio = await crearAutoRepositorio();

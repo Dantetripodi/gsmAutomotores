@@ -156,9 +156,7 @@ export function AdminDashboardView({ onBack }: Props) {
                       src={portada}
                       alt=""
                       className="w-full h-full object-cover"
-                      referrerPolicy={
-                        portada.includes("drive.google.com") ? "strict-origin-when-cross-origin" : "no-referrer"
-                      }
+                      referrerPolicy={portada.includes("image-proxy") ? undefined : "no-referrer"}
                     />
                   ) : (
                     <div className="w-full h-full min-h-[7rem] flex items-center justify-center text-[10px] text-neutral-500 px-2 text-center">

@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { URL_API_BASE } from "../config/env";
 import type { Car, CarCurrency } from "../types";
 
 const RE_DRIVE_FILE_D = /https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
@@ -24,6 +25,32 @@ export function normalizarUrlImagenDrive(url: string): string {
   return t;
 }
 
+/**
+ * Usa el proxy del mismo servidor para URLs que suelen fallar en <img> (Drive, etc.).
+ */
+export function urlParaMostrarImagen(url: string): string {
+  const t = url.trim();
+  if (!t) return t;
+  if (t.startsWith("data:") || t.startsWith("blob:")) return t;
+  if (t.includes("/api/image-proxy")) return t;
+  const n = normalizarUrlImagenDrive(t);
+  try {
+    const u = new URL(n);
+    const host = u.hostname;
+    const usarProxy =
+      host === "drive.google.com" ||
+      host.endsWith(".googleusercontent.com") ||
+      host === "images.unsplash.com";
+    if (!usarProxy) return n;
+    const origin =
+      typeof window !== "undefined" ? (URL_API_BASE || window.location.origin) : URL_API_BASE;
+    if (!origin) return n;
+    return `${origin.replace(/\/$/, "")}/api/image-proxy?url=${encodeURIComponent(n)}`;
+  } catch {
+    return n;
+  }
+}
+
 /** Lista ordenada de todas las fotos del vehículo (portada primero). */
 export function urlsImagenesAuto(car: Pick<Car, "mainImageUrl" | "imageUrls">): string[] {
   const principal = car.mainImageUrl?.trim();
@@ -32,7 +59,7 @@ export function urlsImagenesAuto(car: Pick<Car, "mainImageUrl" | "imageUrls">): 
   if (extra.length === 0) out = principal ? [principal] : [];
   else if (!principal) out = extra;
   else out = [principal, ...extra.filter((u) => u !== principal)];
-  return out.map(normalizarUrlImagenDrive);
+  return out.map(urlParaMostrarImagen);
 }
 
 export function cn(...inputs: ClassValue[]) {

@@ -12,6 +12,19 @@ import { crearTasacionRouter } from "./controlador/TasacionControlador";
 
 export async function crearApp() {
   const app = express();
+  const corsOrigen = process.env.CORS_ORIGIN?.trim();
+  if (corsOrigen) {
+    app.use((req, res, next) => {
+      res.setHeader("Access-Control-Allow-Origin", corsOrigen);
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      if (req.method === "OPTIONS") {
+        res.status(204).end();
+        return;
+      }
+      next();
+    });
+  }
   app.use(express.json({ limit: "20mb" }));
 
   const authServicio = new AuthServicio();

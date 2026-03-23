@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-const PUERTO = 3000;
+const PUERTO = Number(process.env.PORT) || 3000;
 
 async function iniciar() {
   const app = await crearApp();

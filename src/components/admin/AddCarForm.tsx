@@ -4,7 +4,7 @@ import { X, Upload, Trash2 } from "lucide-react";
 import { catalogoServicio, marcasServicio, type CrearAutoPayload } from "../../services";
 import { useAuth } from "../../context/AuthContext";
 import type { Car, CarCurrency } from "../../types";
-import { urlsImagenesAuto } from "../../lib/utils";
+import { normalizarUrlImagenDrive, urlsImagenesAuto } from "../../lib/utils";
 import {
   comprimirImagenArchivo,
   MAX_DATA_URL_EXTRA,
@@ -99,7 +99,8 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
     texto
       .split(/\r?\n/)
       .map((l) => l.trim())
-      .filter((l) => /^https?:\/\//i.test(l));
+      .filter((l) => /^https?:\/\//i.test(l))
+      .map(normalizarUrlImagenDrive);
 
   const agregarUrlsDesdeTexto = () => {
     const lineas = urlsHttpsDesdeTexto(urlsPegadas);
@@ -118,11 +119,13 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
     setSubmitting(true);
     const desdeCuadro = urlsHttpsDesdeTexto(urlsPegadas);
     const vistos = new Set<string>();
-    const fotos = [...galeria.filter(Boolean), ...desdeCuadro].filter((u) => {
-      if (vistos.has(u)) return false;
-      vistos.add(u);
-      return true;
-    });
+    const fotos = [...galeria.filter(Boolean), ...desdeCuadro]
+      .map(normalizarUrlImagenDrive)
+      .filter((u) => {
+        if (vistos.has(u)) return false;
+        vistos.add(u);
+        return true;
+      });
     const payload: CrearAutoPayload = {
       brandName: brandName.trim(),
       modelName: modelName.trim(),
@@ -366,7 +369,8 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
             <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               Con Google Sheets el tamaño por celda es limitado: al subir archivos, la app{" "}
               <span className="font-medium">comprime automáticamente</span> la imagen. Si aun así falla, subí la foto a internet y pegá un enlace{" "}
-              <span className="font-medium">https://</span>.
+              <span className="font-medium">https://</span>. En{" "}
+              <span className="font-medium">Google Drive</span> podés pegar el enlace de la barra de direcciones (…/file/d/…/view); tiene que estar compartido como «Cualquiera con el enlace».
             </p>
             <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
               <label className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#b80c0c] text-white text-sm font-semibold cursor-pointer min-h-[44px] hover:bg-[#9a0a0a] transition-colors">

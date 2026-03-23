@@ -3,8 +3,8 @@ import { twMerge } from "tailwind-merge";
 import { URL_API_BASE } from "../config/env";
 import type { Car, CarCurrency } from "../types";
 
-const RE_DRIVE_FILE_D = /https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
-const RE_DRIVE_OPEN_ID = /https?:\/\/drive\.google\.com\/open\?[^#]*\bid=([a-zA-Z0-9_-]+)/;
+const RE_DRIVE_FILE_D = /https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i;
+const RE_DRIVE_OPEN_ID = /https?:\/\/drive\.google\.com\/open\?[^#]*\bid=([a-zA-Z0-9_-]+)/i;
 
 /**
  * Convierte enlaces de la UI de Drive (página /view) en URL que el navegador puede mostrar en <img>.
@@ -42,10 +42,9 @@ export function urlParaMostrarImagen(url: string): string {
       host.endsWith(".googleusercontent.com") ||
       host === "images.unsplash.com";
     if (!usarProxy) return n;
-    const origin =
-      typeof window !== "undefined" ? (URL_API_BASE || window.location.origin) : URL_API_BASE;
-    if (!origin) return n;
-    return `${origin.replace(/\/$/, "")}/api/image-proxy?url=${encodeURIComponent(n)}`;
+    const path = `/api/image-proxy?url=${encodeURIComponent(n)}`;
+    if (URL_API_BASE) return `${URL_API_BASE.replace(/\/$/, "")}${path}`;
+    return path;
   } catch {
     return n;
   }

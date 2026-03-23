@@ -1,4 +1,5 @@
-import { Menu, Phone, ShieldCheck, Shield } from "lucide-react";
+import { Menu, Phone, ShieldCheck, Shield, X } from "lucide-react";
+import { useState } from "react";
 import type { AppView } from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { SiteLogo } from "../brand/SiteLogo";
@@ -10,15 +11,28 @@ type Props = {
 
 export function AppHeader({ currentView, onNavigate }: Props) {
   const { isAdmin } = useAuth();
+  const [openMobileMenu, setOpenMobileMenu] = useState(false);
+
+  const goTo = (view: AppView) => {
+    onNavigate(view);
+    setOpenMobileMenu(false);
+  };
 
   return (
     <header className="fixed top-0 w-full z-50 bg-white border-b border-neutral-200 shadow-sm">
       <div className="h-14 md:h-16 flex items-center justify-between px-4 md:px-8 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-3">
-          <Menu className="w-5 h-5 text-neutral-600 cursor-pointer md:hidden" onClick={() => onNavigate("catalog")} />
           <button
             type="button"
-            onClick={() => onNavigate("catalog")}
+            className="inline-flex md:hidden items-center justify-center w-9 h-9 rounded-lg text-neutral-600 hover:bg-neutral-100"
+            onClick={() => setOpenMobileMenu((v) => !v)}
+            aria-label="Abrir menú"
+          >
+            {openMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => goTo("catalog")}
             className="flex items-center gap-2.5 min-w-0 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b80c0c] focus-visible:ring-offset-2"
           >
             <SiteLogo />
@@ -85,6 +99,64 @@ export function AppHeader({ currentView, onNavigate }: Props) {
           </a>
         </div>
       </div>
+      {openMobileMenu && (
+        <>
+          <button
+            type="button"
+            aria-label="Cerrar menú"
+            onClick={() => setOpenMobileMenu(false)}
+            className="md:hidden fixed inset-0 top-14 bg-black/30"
+          />
+          <div className="md:hidden border-t border-neutral-200 bg-white px-4 py-3 relative z-10">
+          <nav className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => goTo("catalog")}
+              className={`text-left px-3 py-2 rounded-lg text-sm font-medium ${
+                currentView === "catalog" || currentView === "details"
+                  ? "text-[#b80c0c] bg-[#b80c0c]/5"
+                  : "text-neutral-700 hover:bg-neutral-50"
+              }`}
+            >
+              Catálogo
+            </button>
+            <button
+              type="button"
+              onClick={() => goTo("appraisal")}
+              className={`text-left px-3 py-2 rounded-lg text-sm font-medium ${
+                currentView === "appraisal"
+                  ? "text-[#b80c0c] bg-[#b80c0c]/5"
+                  : "text-neutral-700 hover:bg-neutral-50"
+              }`}
+            >
+              Tasaciones
+            </button>
+            <button
+              type="button"
+              onClick={() => goTo("seguros")}
+              className={`text-left px-3 py-2 rounded-lg text-sm font-medium ${
+                currentView === "seguros"
+                  ? "text-[#b80c0c] bg-[#b80c0c]/5"
+                  : "text-neutral-700 hover:bg-neutral-50"
+              }`}
+            >
+              Seguros
+            </button>
+            <button
+              type="button"
+              onClick={() => goTo("admin")}
+              className={`text-left px-3 py-2 rounded-lg text-sm font-medium ${
+                currentView === "admin"
+                  ? "text-[#b80c0c] bg-[#b80c0c]/5"
+                  : "text-neutral-700 hover:bg-neutral-50"
+              }`}
+            >
+              {isAdmin ? "Panel admin" : "Admin"}
+            </button>
+          </nav>
+          </div>
+        </>
+      )}
     </header>
   );
 }

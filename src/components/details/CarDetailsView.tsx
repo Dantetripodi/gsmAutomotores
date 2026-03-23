@@ -6,7 +6,6 @@ import {
   MessageCircle,
   Share2,
   Wallet,
-  CreditCard,
   Building2,
   ArrowLeft,
   Home,
@@ -47,7 +46,18 @@ export function CarDetailsView({ id, onBack, onSelectCar }: Props) {
   });
 
   const copyShare = () => {
+    if (!car) return;
+    const titulo = buildCarDetailTitle(car);
+    if (navigator.share) {
+      void navigator.share({
+        title: titulo,
+        text: `Mirá este auto: ${titulo}`,
+        url: window.location.href,
+      });
+      return;
+    }
     void navigator.clipboard.writeText(window.location.href);
+    alert("Enlace copiado.");
   };
 
   if (loading) {
@@ -216,27 +226,15 @@ export function CarDetailsView({ id, onBack, onSelectCar }: Props) {
 
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 z-[110] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
         <div className="max-w-3xl mx-auto p-4 flex flex-col gap-3">
-          <div className="flex gap-3 items-center">
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] text-neutral-500 truncate">{buildCarDetailTitle(car)}</p>
-              <p className="text-lg font-bold text-neutral-900">{formatPrice(car.price, car.currency)}</p>
-            </div>
-            <a href={whatsappConsultUrl(car)} target="_blank" rel="noreferrer"
-              className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-lg bg-[#25d366] text-white min-h-[48px] min-w-[48px]"
-              aria-label="WhatsApp">
-              <MessageCircle className="w-6 h-6 fill-current" />
-            </a>
+          <div className="min-w-0">
+            <p className="text-[11px] text-neutral-500 truncate">{buildCarDetailTitle(car)}</p>
+            <p className="text-lg font-bold text-neutral-900">{formatPrice(car.price, car.currency)}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <a href={whatsappConsultUrl(car)} target="_blank" rel="noreferrer"
               className="flex-1 py-3.5 sm:py-3 rounded-lg bg-[#b80c0c] text-white text-sm font-semibold hover:bg-[#9a0a0a] text-center min-h-[44px] flex items-center justify-center">
               Consultar por este auto
             </a>
-            <button type="button"
-              className="py-3 px-4 rounded-lg border border-neutral-200 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 flex items-center justify-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Señar
-            </button>
           </div>
         </div>
       </div>

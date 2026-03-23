@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="GSM Automotores">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#2d2d2d"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="url(#g)" stroke="#b80c0c" stroke-width="4"/>
+  <path fill="#b80c0c" d="M28 68c0-2 2-4 4-4h56c2 0 4 2 4 4v4H28v-4zm8-18l6-12c1-2 3-3 5-3h24c2 0 4 1 5 3l6 12H36z"/>
+  <ellipse cx="42" cy="78" rx="10" ry="4" fill="#e5e5e5"/>
+  <ellipse cx="78" cy="78" rx="10" ry="4" fill="#e5e5e5"/>
+  <text x="60" y="38" text-anchor="middle" fill="#fff" font-family="system-ui,Segoe UI,sans-serif" font-size="18" font-weight="800" letter-spacing="0.08em">GSM</text>
+</svg>

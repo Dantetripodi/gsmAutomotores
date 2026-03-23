@@ -1,6 +1,6 @@
 import type { AppView } from "../../types";
-
-const INSTAGRAM = "https://instagram.com/gsmautomotores";
+import { INSTAGRAM_URL } from "../../config/branding";
+import { SiteLogo } from "../brand/SiteLogo";
 const FACEBOOK = "https://facebook.com/gsmautomotores";
 const WHATSAPP = "https://wa.me/5491100000000";
 
@@ -39,15 +39,17 @@ export function AppFooter({ onNavigate }: Props) {
     <footer className="bg-neutral-900 text-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-12 pb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-          {/* Marca */}
           <div>
-            <h2 className="text-lg font-bold tracking-tight mb-2">GSM Automotores</h2>
+            <div className="flex items-center gap-3 mb-3">
+              <SiteLogo className="rounded-full border border-white/10" />
+              <h2 className="text-lg font-bold tracking-tight">GSM Automotores</h2>
+            </div>
             <p className="text-sm text-neutral-400 leading-relaxed">
               Tu concesionaria de confianza. Venta de autos usados, 0km, seguros y tasaciones.
             </p>
             <div className="flex items-center gap-3 mt-5">
               <a
-                href={INSTAGRAM}
+                href={INSTAGRAM_URL}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"

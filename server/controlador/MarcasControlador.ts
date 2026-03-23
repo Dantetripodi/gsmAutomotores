@@ -1,13 +1,16 @@
 import { Router } from "express";
-import type { AutoRepositorio } from "../repositorio/AutoRepositorio";
+import type { IAutoRepositorio } from "../repositorio/IAutoRepositorio";
 
-// Las marcas se derivan dinámicamente del catálogo,
-// por eso no tienen repositorio propio.
-export function crearMarcasRouter(repositorio: AutoRepositorio): Router {
+export function crearMarcasRouter(repositorio: IAutoRepositorio): Router {
   const router = Router();
 
-  router.get("/", (req, res) => {
-    res.json(repositorio.obtenerMarcas());
+  router.get("/", async (req, res, next) => {
+    try {
+      const marcas = await repositorio.obtenerMarcas();
+      res.json(marcas);
+    } catch (e) {
+      next(e);
+    }
   });
 
   return router;

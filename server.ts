@@ -1,17 +1,19 @@
-import "dotenv/config";
-import express from "express";
-import { createServer as crearServidorVite } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import express from "express";
+import { createServer as crearServidorVite } from "vite";
 import { crearApp } from "./server/app";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config({ path: path.join(__dirname, ".env") });
+
 const PUERTO = 3000;
 
 async function iniciar() {
-  const app = crearApp();
+  const app = await crearApp();
 
   if (process.env.NODE_ENV !== "production") {
     // En desarrollo: Vite sirve el frontend con HMR

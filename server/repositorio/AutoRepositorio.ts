@@ -1,22 +1,13 @@
 import fs from "fs";
 import path from "path";
 import { obtenerDirectorioDatos } from "../rutas";
+import { slugMarca } from "../utils/slugMarca";
 import { Repositorio } from "./Repositorio";
 import { SEMILLA_AUTOS } from "../datos/semillaAutos";
 import type { Auto, AutoConSlug, CrearAutoDTO, EstadisticasDashboard, EstadoAuto } from "../tipos";
 
 const IMAGEN_PLACEHOLDER =
   "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1200";
-
-// Convierte un nombre de marca a slug URL-friendly (ej: "Mercedes-Benz" → "mercedes-benz")
-function aSlug(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "");
-}
 
 // Si existe data/cars.json (versión anterior) y aún no existe data/autos.json,
 // migra los datos automáticamente para no perder el catálogo cargado.
@@ -43,7 +34,7 @@ export class AutoRepositorio extends Repositorio<Auto> {
   }
 
   private enriquecer(auto: Auto): AutoConSlug {
-    return { ...auto, brandSlug: aSlug(auto.brandName) };
+    return { ...auto, brandSlug: slugMarca(auto.brandName) };
   }
 
   override obtenerTodas(): AutoConSlug[] {
@@ -59,10 +50,10 @@ export class AutoRepositorio extends Repositorio<Auto> {
     return this.entidades
       .filter((auto) => {
         if (parametros.marca) {
-          const slugMarca = aSlug(auto.brandName);
+          const slug = slugMarca(auto.brandName);
           const nombreMarca = auto.brandName.toLowerCase();
           const filtro = parametros.marca.toLowerCase();
-          if (slugMarca !== filtro && nombreMarca !== filtro) return false;
+          if (slug !== filtro && nombreMarca !== filtro) return false;
         }
         if (parametros.precioMaximo != null && auto.price > parametros.precioMaximo) {
           return false;
@@ -99,7 +90,7 @@ export class AutoRepositorio extends Repositorio<Auto> {
   obtenerMarcas(): Array<{ id: string; name: string; slug: string }> {
     const vistas = new Map<string, { id: string; name: string; slug: string }>();
     for (const auto of this.entidades) {
-      const slug = aSlug(auto.brandName);
+      const slug = slugMarca(auto.brandName);
       if (!vistas.has(slug)) {
         vistas.set(slug, { id: slug, name: auto.brandName, slug });
       }

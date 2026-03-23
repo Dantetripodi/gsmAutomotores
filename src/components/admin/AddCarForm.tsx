@@ -5,6 +5,11 @@ import { catalogoServicio, marcasServicio, type CrearAutoPayload } from "../../s
 import { useAuth } from "../../context/AuthContext";
 import { useOnInit } from "../../hooks/useOnInit";
 import type { CarCurrency } from "../../types";
+import {
+  comprimirImagenArchivo,
+  MAX_DATA_URL_EXTRA,
+  MAX_DATA_URL_PORTADA,
+} from "../../lib/comprimirImagenDataUrl";
 
 type Props = {
   onClose: () => void;
@@ -45,14 +50,6 @@ export function AddCarForm({ onClose, onSaved }: Props) {
     marcasServicio.obtenerMarcas().then((brands) => setBrandSuggestions(brands.map((b) => b.name)));
   });
 
-  const leerArchivoComoDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-      reader.onerror = () => reject(new Error("lectura"));
-      reader.readAsDataURL(file);
-    });
-
   const handleArchivos = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
@@ -60,7 +57,15 @@ export function AddCarForm({ onClose, onSaved }: Props) {
     const lista: File[] = Array.from(files as FileList);
     for (const file of lista) {
       if (!file.type.startsWith("image/")) continue;
-      dataUrls.push(await leerArchivoComoDataUrl(file));
+      const indiceGlobal = galeria.length + dataUrls.length;
+      const tope = indiceGlobal === 0 ? MAX_DATA_URL_PORTADA : MAX_DATA_URL_EXTRA;
+      try {
+        dataUrls.push(await comprimirImagenArchivo(file, tope));
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "No se pudo procesar una imagen.");
+        e.target.value = "";
+        return;
+      }
     }
     if (dataUrls.length) setGaleria((prev) => [...prev, ...dataUrls]);
     e.target.value = "";
@@ -107,8 +112,8 @@ export function AddCarForm({ onClose, onSaved }: Props) {
     try {
       await catalogoServicio.crear(payload, token);
       onSaved();
-    } catch {
-      alert("No se pudo guardar el vehículo.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "No se pudo guardar el vehículo.");
     } finally {
       setSubmitting(false);
     }
@@ -318,6 +323,11 @@ export function AddCarForm({ onClose, onSaved }: Props) {
             <p className="text-sm font-semibold text-neutral-900">Fotos del vehículo</p>
             <p className="text-xs text-neutral-600">
               La primera imagen es la portada. Podés subir varias desde la galería o agregar URLs (una por línea). Si no cargás ninguna, se usa una imagen por defecto.
+            </p>
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Con Google Sheets el tamaño por celda es limitado: al subir archivos, la app{" "}
+              <span className="font-medium">comprime automáticamente</span> la imagen. Si aun así falla, subí la foto a internet y pegá un enlace{" "}
+              <span className="font-medium">https://</span>.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
               <label className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#b80c0c] text-white text-sm font-semibold cursor-pointer min-h-[44px] hover:bg-[#9a0a0a] transition-colors">

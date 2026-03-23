@@ -1,6 +1,7 @@
 import { Menu, Phone, ShieldCheck, Shield } from "lucide-react";
 import type { AppView } from "../../types";
 import { useAuth } from "../../context/AuthContext";
+import { SiteLogo } from "../brand/SiteLogo";
 
 type Props = {
   currentView: AppView;
@@ -15,12 +16,16 @@ export function AppHeader({ currentView, onNavigate }: Props) {
       <div className="h-14 md:h-16 flex items-center justify-between px-4 md:px-8 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-3">
           <Menu className="w-5 h-5 text-neutral-600 cursor-pointer md:hidden" onClick={() => onNavigate("catalog")} />
-          <h1
-            className="text-lg md:text-xl font-bold tracking-tight cursor-pointer text-neutral-900"
+          <button
+            type="button"
             onClick={() => onNavigate("catalog")}
+            className="flex items-center gap-2.5 min-w-0 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b80c0c] focus-visible:ring-offset-2"
           >
-            GSM Automotores
-          </h1>
+            <SiteLogo />
+            <span className="text-lg md:text-xl font-bold tracking-tight text-neutral-900 truncate">
+              GSM Automotores
+            </span>
+          </button>
         </div>
 
         <nav className="hidden md:flex items-center gap-1">

@@ -54,7 +54,16 @@ class CatalogoServicio {
       headers: encabezadosAuth(token),
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error("No se pudo crear el vehículo");
+    if (!res.ok) {
+      let mensaje = "No se pudo crear el vehículo.";
+      try {
+        const j = (await res.json()) as { mensaje?: string };
+        if (j.mensaje) mensaje = j.mensaje;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(mensaje);
+    }
     return res.json();
   }
 

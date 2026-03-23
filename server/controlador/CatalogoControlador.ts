@@ -2,7 +2,6 @@ import { Router, type RequestHandler } from "express";
 import type { IAutoRepositorio } from "../repositorio/IAutoRepositorio";
 import type { ActualizarAutoDTO, CrearAutoDTO, EstadoAuto } from "../tipos";
 import { validarCrearAutoParaSheets } from "../utils/limiteCeldaGoogleSheets";
-import { mapAutoUrlsParaFrontend } from "../utils/urlImagen";
 
 const ESTADOS_VALIDOS: EstadoAuto[] = ["available", "reserved", "sold"];
 
@@ -19,7 +18,7 @@ export function crearCatalogoRouter(
         marca: brand as string | undefined,
         precioMaximo: price_max ? Number(price_max) : undefined,
       });
-      res.json(autos.map(mapAutoUrlsParaFrontend));
+      res.json(autos);
     } catch (e) {
       next(e);
     }
@@ -36,7 +35,7 @@ export function crearCatalogoRouter(
         if (errSheets) return res.status(400).json({ mensaje: errSheets });
       }
       const nuevo = await repositorio.crearAuto(datos);
-      res.status(201).json(mapAutoUrlsParaFrontend(nuevo));
+      res.status(201).json(nuevo);
     } catch (e) {
       next(e);
     }
@@ -50,7 +49,7 @@ export function crearCatalogoRouter(
       }
       const actualizado = await repositorio.actualizarEstado(Number(req.params.id), status);
       if (!actualizado) return res.status(404).json({ mensaje: "Vehículo no encontrado" });
-      res.json(mapAutoUrlsParaFrontend(actualizado));
+      res.json(actualizado);
     } catch (e) {
       next(e);
     }
@@ -72,7 +71,7 @@ export function crearCatalogoRouter(
       }
       const actualizado = await repositorio.actualizarAuto(id, datos);
       if (!actualizado) return res.status(404).json({ mensaje: "Vehículo no encontrado" });
-      res.json(mapAutoUrlsParaFrontend(actualizado));
+      res.json(actualizado);
     } catch (e) {
       next(e);
     }
@@ -82,7 +81,7 @@ export function crearCatalogoRouter(
     try {
       const auto = await repositorio.obtenerPorId(Number(req.params.id));
       if (!auto) return res.status(404).json({ mensaje: "Vehículo no encontrado" });
-      res.json(mapAutoUrlsParaFrontend(auto));
+      res.json(auto);
     } catch (e) {
       next(e);
     }

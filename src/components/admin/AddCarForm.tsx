@@ -1,15 +1,10 @@
 import { useState, useRef, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { motion } from "motion/react";
 import { X, Upload, Trash2 } from "lucide-react";
-import { catalogoServicio, marcasServicio, type CrearAutoPayload } from "../../services";
+import { catalogoServicio, marcasServicio, uploadServicio, type CrearAutoPayload } from "../../services";
 import { useAuth } from "../../context/AuthContext";
 import type { Car, CarCurrency } from "../../types";
-import { normalizarUrlImagenDrive, urlParaMostrarImagen, urlsImagenesAuto } from "../../lib/utils";
-import {
-  comprimirImagenArchivo,
-  MAX_DATA_URL_EXTRA,
-  MAX_DATA_URL_PORTADA,
-} from "../../lib/comprimirImagenDataUrl";
+import { urlsImagenesAuto } from "../../lib/utils";
 
 type Props = {
   onClose: () => void;
@@ -20,12 +15,22 @@ type Props = {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
+async function archivoADataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [brandSuggestions, setBrandSuggestions] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [brandName, setBrandName] = useState("");
   const [modelName, setModelName] = useState("");
@@ -76,31 +81,33 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
 
   const handleArchivos = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files?.length) return;
-    const dataUrls: string[] = [];
+    if (!files?.length || !token) return;
+    const subidas: string[] = [];
     const lista: File[] = Array.from(files as FileList);
+    setUploading(true);
     for (const file of lista) {
       if (!file.type.startsWith("image/")) continue;
-      const indiceGlobal = galeria.length + dataUrls.length;
-      const tope = indiceGlobal === 0 ? MAX_DATA_URL_PORTADA : MAX_DATA_URL_EXTRA;
       try {
-        dataUrls.push(await comprimirImagenArchivo(file, tope));
+        const dataUrl = await archivoADataUrl(file);
+        const cloudinaryUrl = await uploadServicio.subirImagen(dataUrl, token);
+        subidas.push(cloudinaryUrl);
       } catch (err) {
         alert(err instanceof Error ? err.message : "No se pudo procesar una imagen.");
         e.target.value = "";
+        setUploading(false);
         return;
       }
     }
-    if (dataUrls.length) setGaleria((prev) => [...prev, ...dataUrls]);
+    if (subidas.length) setGaleria((prev) => [...prev, ...subidas]);
     e.target.value = "";
+    setUploading(false);
   };
 
   const urlsHttpsDesdeTexto = (texto: string) =>
     texto
       .split(/\r?\n/)
       .map((l) => l.trim())
-      .filter((l) => /^https?:\/\//i.test(l))
-      .map(normalizarUrlImagenDrive);
+      .filter((l) => /^https?:\/\//i.test(l));
 
   const agregarUrlsDesdeTexto = () => {
     const lineas = urlsHttpsDesdeTexto(urlsPegadas);
@@ -119,13 +126,11 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
     setSubmitting(true);
     const desdeCuadro = urlsHttpsDesdeTexto(urlsPegadas);
     const vistos = new Set<string>();
-    const fotos = [...galeria.filter(Boolean), ...desdeCuadro]
-      .map(normalizarUrlImagenDrive)
-      .filter((u) => {
-        if (vistos.has(u)) return false;
-        vistos.add(u);
-        return true;
-      });
+    const fotos = [...galeria.filter(Boolean), ...desdeCuadro].filter((u) => {
+      if (vistos.has(u)) return false;
+      vistos.add(u);
+      return true;
+    });
     const payload: CrearAutoPayload = {
       brandName: brandName.trim(),
       modelName: modelName.trim(),
@@ -367,15 +372,13 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
               La primera imagen es la portada. Podés subir varias desde la galería o pegar URLs (una por línea); también se guardan al pulsar «Guardar» aunque no hayas pulsado «Añadir URLs a la galería». Si quitás todas las fotos, en el catálogo se verá el bloque vacío (sin imagen).
             </p>
             <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Con Google Sheets el tamaño por celda es limitado: al subir archivos, la app{" "}
-              <span className="font-medium">comprime automáticamente</span> la imagen. Si aun así falla, subí la foto a internet y pegá un enlace{" "}
-              <span className="font-medium">https://</span>. En{" "}
-              <span className="font-medium">Google Drive</span> podés pegar el enlace de la barra de direcciones (…/file/d/…/view); tiene que estar compartido como «Cualquiera con el enlace».
+              Al subir archivos, la app los guarda en <span className="font-medium">Cloudinary</span> para mantener buena calidad y compatibilidad en producción. También podés pegar enlaces{" "}
+              <span className="font-medium">https://</span>.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
               <label className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#b80c0c] text-white text-sm font-semibold cursor-pointer min-h-[44px] hover:bg-[#9a0a0a] transition-colors">
                 <Upload className="w-4 h-4" />
-                Subir imágenes
+                {uploading ? "Subiendo..." : "Subir imágenes"}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -383,6 +386,7 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
                   multiple
                   className="hidden"
                   onChange={handleArchivos}
+                  disabled={uploading}
                 />
               </label>
             </div>
@@ -405,14 +409,13 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
             {galeria.length > 0 && (
               <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {galeria.map((src, idx) => {
-                  const srcMostrar = urlParaMostrarImagen(src);
                   return (
                   <li key={`${idx}-${src.slice(0, 24)}`} className="relative group rounded-lg border border-neutral-200 overflow-hidden bg-neutral-100 aspect-[4/3]">
                     <img
-                      src={srcMostrar}
+                      src={src}
                       alt=""
                       className="w-full h-full object-cover"
-                      referrerPolicy={srcMostrar.includes("image-proxy") ? undefined : "no-referrer"}
+                      referrerPolicy="no-referrer"
                     />
                     <span className="absolute top-1 left-1 text-[10px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded">
                       {idx === 0 ? "Portada" : idx + 1}
@@ -444,7 +447,7 @@ export function AddCarForm({ onClose, onSaved, carToEdit = null }: Props) {
 
           <button
             type="submit"
-            disabled={submitting || !brandName.trim() || !modelName.trim()}
+            disabled={submitting || uploading || !brandName.trim() || !modelName.trim()}
             className="w-full py-3.5 bg-[#b80c0c] text-white rounded-lg font-semibold text-base min-h-[48px] hover:bg-[#9a0a0a] transition-colors disabled:opacity-50"
           >
             {submitting ? "Guardando…" : carToEdit ? "Guardar cambios" : "Guardar vehículo"}

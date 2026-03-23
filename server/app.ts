@@ -9,7 +9,7 @@ import { crearCatalogoRouter } from "./controlador/CatalogoControlador";
 import { crearMarcasRouter } from "./controlador/MarcasControlador";
 import { crearDashboardRouter } from "./controlador/DashboardControlador";
 import { crearTasacionRouter } from "./controlador/TasacionControlador";
-import { crearImageProxyRouter } from "./controlador/ImageProxyControlador";
+import { crearUploadRouter } from "./controlador/UploadControlador";
 
 export async function crearApp() {
   const app = express();
@@ -34,14 +34,13 @@ export async function crearApp() {
     next();
   });
 
-  app.use("/api", crearImageProxyRouter());
-
   const authServicio = new AuthServicio();
   const autoRepositorio = await crearAutoRepositorio();
   const requireAuth = crearMiddlewareAuth(authServicio);
 
   app.use("/api/auth", crearAuthRouter(authServicio));
   app.use("/api/catalog", crearCatalogoRouter(autoRepositorio, requireAuth));
+  app.use("/api/uploads", crearUploadRouter(requireAuth));
   app.use("/api/brands", crearMarcasRouter(autoRepositorio));
   app.use("/api/dashboard", crearDashboardRouter(autoRepositorio));
   app.use("/api/appraisal", crearTasacionRouter());

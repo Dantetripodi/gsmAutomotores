@@ -9,3 +9,4 @@ export {
 export { marcasServicio } from "./MarcasServicio";
 export { dashboardServicio } from "./DashboardServicio";
 export { tasacionServicio, type PayloadTasacion } from "./TasacionServicio";
+export { uploadServicio } from "./UploadServicio";

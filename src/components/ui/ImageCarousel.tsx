@@ -53,7 +53,7 @@ export function ImageCarousel({ images, alt, className, aspectClass = "aspect-[4
           src={srcActual}
           alt={alt}
           className="w-full h-full object-cover"
-          referrerPolicy={srcActual.includes("image-proxy") ? undefined : "no-referrer"}
+          referrerPolicy="no-referrer"
           onError={() => setFalloPorIndice((f) => ({ ...f, [index]: true }))}
         />
       )}
